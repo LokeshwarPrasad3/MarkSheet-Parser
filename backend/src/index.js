@@ -8,7 +8,8 @@ const PORT = process.env.PORT || 3000;
 
 // configure cors middleware
 app.use(cors({
-    origin: "*",
+    // origin: "*",
+    origin: "https://lokeshwar-marksheet.onrender.com",
     credentials: true,
 }))
 
