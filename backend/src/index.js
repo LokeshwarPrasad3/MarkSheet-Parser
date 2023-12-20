@@ -8,10 +8,10 @@ const PORT = process.env.PORT || 3000;
 
 // configure cors middleware
 app.use(cors({
-    // origin: "*",
-    origin: "https://lokeshwar-marksheet.onrender.com",
+    origin: ["https://lokeshwar-marksheet.onrender.com", "https://lokeshwar-marksheet.netlify.app"],
     credentials: true,
-}))
+}));
+
 
 
 const basicRouter = require("./router/basic.router.")
