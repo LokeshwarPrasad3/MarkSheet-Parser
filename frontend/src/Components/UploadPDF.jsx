@@ -6,7 +6,7 @@ import { host } from "../utls/api";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 
-const UploadPDF = ({ setSubjectMarksArray }) => {
+const UploadPDF = ({ setStudentDetails,setSubjectMarksArray }) => {
   // eslint-disable-next-line
   const [localPdf, setLocalPdf] = useState(""); // store pdf in localpath to post api as data
   const [loading, setLoading] = useState(false); // loading submit button when response
@@ -55,12 +55,13 @@ const UploadPDF = ({ setSubjectMarksArray }) => {
         return;
       }
 
-      // console.log(data);
+      console.log(data);
 
       // found data consist three values
       // status
       // message
-      // subjectMarksArray
+
+      setStudentDetails(data);
 
       toast.success("Successfully Marksheet Extracted!!", { autoClose: 2000 });
       // set subjectMarks to display in frontend

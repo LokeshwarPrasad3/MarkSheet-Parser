@@ -1,9 +1,31 @@
 const pdf_table_extractor = require('pdf-table-extractor');
+const fs = require("fs");
+const PDFParser = require('pdf-parse');
+
 
 function extractTable(pdfPath) {
     return new Promise((resolve, reject) => {
         pdf_table_extractor(pdfPath, resolve, reject);
     });
+}
+
+async function extractTextDetails(pdfPath) {
+    try {
+        const dataBuffer = fs.readFileSync(pdfPath);
+        const data = await PDFParser(dataBuffer);
+    
+        // Extracted text details
+        const textDetails = data.text;
+        const validate = textDetails.split("\n")[6].split(" ").join("") === "CHHATTISGARHSWAMIVIVEKANANDTECHNICALUNIVERSITY,BHILAI";
+        console.log(textDetails.split("\n")[6], validate);
+        // if (!validate) {
+        //     throw new Error("Invalid marksheet");
+        // }
+        return textDetails.split("\n");
+    } catch (error) {
+        console.log("Error in pdf-parser", error);
+        return;
+    }
 }
 
 const printSubjectMarks = async (pdfPath) => {
@@ -40,4 +62,4 @@ const printSubjectMarks = async (pdfPath) => {
 
 // const returnedArr = printSubjectMarks
 
-module.exports = { printSubjectMarks };
+module.exports = { printSubjectMarks, extractTextDetails };

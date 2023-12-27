@@ -6,12 +6,19 @@ import UploadPDF from "./Components/UploadPDF";
 function App() {
   // State store API Response of Marksheet Subject Marks
   const [subjectMarksArray, setSubjectMarksArray] = useState([]);
+  const [studentDetails, setStudentDetails] = useState([]);
 
   return (
     <>
       <Navbar />
-      <UploadPDF setSubjectMarksArray={setSubjectMarksArray} />
-      <ShowData subjectMarksArray={subjectMarksArray} />
+      <UploadPDF
+        setSubjectMarksArray={setSubjectMarksArray}
+        setStudentDetails={setStudentDetails}
+      />
+      <ShowData
+        subjectMarksArray={subjectMarksArray}
+        studentDetails={studentDetails}
+      />
     </>
   );
 }
