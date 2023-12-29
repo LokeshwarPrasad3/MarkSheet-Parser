@@ -1,14 +1,17 @@
 
 
 const express = require("express");
-const { convertPDFToText } = require("../controllers/pdfWork");
+const { extractPDFData } = require("../controllers/pdfExtracter.controllers.js");
 const router = express.Router();
 const { upload } = require("../middleware/multer.middleware.js")
 
-router.route("/getpdf").post(
+// routes for extract pdf data
+router.route("/extract-pdf").post(
     upload.single('file'),
-    convertPDFToText
+    extractPDFData
 );
+
+console.log("HELLOW");
 
 
 module.exports = router;

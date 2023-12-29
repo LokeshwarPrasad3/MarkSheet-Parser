@@ -6,7 +6,8 @@ import UploadPDF from "./Components/UploadPDF";
 function App() {
   // State store API Response of Marksheet Subject Marks
   const [subjectMarksArray, setSubjectMarksArray] = useState([]);
-  const [studentDetails, setStudentDetails] = useState([]);
+  // store details of student
+  const [studentDetails, setStudentDetails] = useState({});
 
   return (
     <>

@@ -6,23 +6,27 @@ import { host } from "../utls/api";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 
-const UploadPDF = ({ setStudentDetails,setSubjectMarksArray }) => {
+const UploadPDF = ({ setStudentDetails, setSubjectMarksArray }) => {
   // eslint-disable-next-line
   const [localPdf, setLocalPdf] = useState(""); // store pdf in localpath to post api as data
   const [loading, setLoading] = useState(false); // loading submit button when response
 
   // When choose file then handle choose file
   const handleGetPdf = (e) => {
-    // file must be pdf format
+    // if user not selected any file or clicked (cancel)
+    if (!e.target.files[0]) return;
+
+    // validate pdf format type .pdf
     if (e.target.files[0]?.type !== "application/pdf") {
       toast.error("File must be PDF format!!", { autoClose: 2000 });
       return;
     }
-    const file = e.target.files[0];
+    const marksheet = e.target.files[0];
     // need to create formData when post api req as data set
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", marksheet);
     setLocalPdf(formData);
+    console.log("Successfully getted")
   };
 
   // When click submit button then done post request which gives subject Marks data
@@ -34,9 +38,10 @@ const UploadPDF = ({ setStudentDetails,setSubjectMarksArray }) => {
       return;
     }
 
+    console.log("HIII");
     try {
-      const { data } = await axios.post(`${host}/pdf/getpdf`, localPdf);
-
+      const { data } = await axios.post(`${host}/pdf/extract-pdf`, localPdf);
+      console.log(data);
       // if data not found
       if (!data) {
         setLocalPdf("");
@@ -50,22 +55,19 @@ const UploadPDF = ({ setStudentDetails,setSubjectMarksArray }) => {
       if (!data.success) {
         setLocalPdf("");
         setSubjectMarksArray([]);
-        toast.error("Invalid Marksheet PDF !!", { autoClose: 2000 });
+        toast.error(`${data?.message}`, { autoClose: 2000 });
+        // toast.error("Invalid Marksheet PDF !!", { autoClose: 2000 });
         setLoading(false);
         return;
       }
 
-      console.log(data);
+      console.log(data?.message);
+      const pdfData = data?.data;
 
-      // found data consist three values
-      // status
-      // message
-
-      setStudentDetails(data);
+      setStudentDetails(pdfData?.extractedStudentDetails);
+      setSubjectMarksArray(pdfData?.extractedTableSubjectMarks);
 
       toast.success("Successfully Marksheet Extracted!!", { autoClose: 2000 });
-      // set subjectMarks to display in frontend
-      setSubjectMarksArray(data.subjectMarksArray);
       setLoading(false);
     } catch (error) {
       // value must be empty after error

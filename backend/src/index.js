@@ -1,28 +1,20 @@
-const express = require("express");
-const app = express();
 const dotenv = require("dotenv")
-const cors = require("cors")
-dotenv.config({ path: './.env' })
-const path = require("path");
+// dotenv.config({ path: './.env.sample' })
+dotenv.config({ path: './.env.production' });
 const PORT = process.env.PORT || 3000;
+const connectToDB = require("./db/conn");
+const { app } = require("./app")
 
-// configure cors middleware
-app.use(cors({
-    origin: ["https://lokeshwar-marksheet.onrender.com", "https://lokeshwar-marksheet.netlify.app"],
-    credentials: true,
-}));
+connectToDB()
+    .then(() => {
+        app.on("error", () => {
+            console.log("Error ", error);
+            throw error
+        })
+        app.listen(PORT, () => {
+            console.log(`Server Listen at ${PORT}`)
 
-
-
-const basicRouter = require("./router/basic.router.")
-
-// Initialize Routing end-points
-app.use('/api/pdf', basicRouter);
-
-
-// server port listening
-app.listen(PORT, () => {
-    console.log(`Server Listen at ${PORT}`)
-})
-
-
+        })
+    }).catch((err) => {
+        console.log("Mongodb connection error", err)
+    })

@@ -1,6 +1,7 @@
 const pdf_table_extractor = require('pdf-table-extractor');
 const fs = require("fs");
 const PDFParser = require('pdf-parse');
+const { ApiError } = require('./ApiError');
 
 
 function extractTable(pdfPath) {
@@ -9,7 +10,7 @@ function extractTable(pdfPath) {
     });
 }
 
-async function extractTextDetails(pdfPath) {
+async function extractStudentDetails(pdfPath) {
     try {
         const dataBuffer = fs.readFileSync(pdfPath);
         const data = await PDFParser(dataBuffer);
@@ -28,31 +29,30 @@ async function extractTextDetails(pdfPath) {
     }
 }
 
-const printSubjectMarks = async (pdfPath) => {
+const extractSubjectMarks = async (pdfPath) => {
     try {
         const result = await extractTable(pdfPath);
         if (!result) {
-            console.log("PDF not extracted");
-            return [];
+            throw new ApiError(400, "PDF is not extracted")
         }
 
         let subjectWiseMarksDetails = [];
-
+// because extracted data starts from 2th
         for (let i = 2; i <= 11; i++) {
-            const value = result?.pageTables[0]?.tables[i][3];
-            if (value === "100") {
-                const name = result?.pageTables[0]?.tables[i][2];
-                const marks = result?.pageTables[0]?.tables[i][4];
-                subjectWiseMarksDetails.push({ name, marks });
+            const totalMarksValue = result?.pageTables[0]?.tables[i][3];
+            if (totalMarksValue === "100") {
+                const subject_name = result?.pageTables[0]?.tables[i][2];
+                const subject_marks = result?.pageTables[0]?.tables[i][4];
+                subjectWiseMarksDetails.push({ subject_name, subject_marks });
                 console.log(`${JSON.stringify(result.pageTables[0].tables[i][2])} : ${JSON.stringify(result.pageTables[0].tables[i][4])}`);
             }
         }
 
         if (subjectWiseMarksDetails.length === 0) {
-            return [];
+            throw new ApiError(400, "Invalid Marksheet PDF!");
         }
 
-        console.log("here " + subjectWiseMarksDetails);
+        console.log("subjec wise marks " , subjectWiseMarksDetails);
         return subjectWiseMarksDetails;
     } catch (err) {
         console.error('Error:', err);
@@ -60,6 +60,6 @@ const printSubjectMarks = async (pdfPath) => {
     }
 };
 
-// const returnedArr = printSubjectMarks
+// const returnedArr = extractSubjectMarks
 
-module.exports = { printSubjectMarks, extractTextDetails };
+module.exports = { extractSubjectMarks, extractStudentDetails };
