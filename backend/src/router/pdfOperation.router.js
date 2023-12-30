@@ -1,7 +1,7 @@
 
 
 const express = require("express");
-const { extractPDFData } = require("../controllers/pdfExtracter.controllers.js");
+const { extractPDFData, accessAllStudentMarksheetDetails } = require("../controllers/pdfExtracter.controllers.js");
 const router = express.Router();
 const { upload } = require("../middleware/multer.middleware.js")
 
@@ -11,7 +11,8 @@ router.route("/extract-pdf").post(
     extractPDFData
 );
 
-console.log("HELLOW");
+// router access details of marksheet uploaded
+router.route("/all-student-marksheet-details").get(accessAllStudentMarksheetDetails)
 
 
 module.exports = router;

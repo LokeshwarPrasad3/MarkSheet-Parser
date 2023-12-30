@@ -5,7 +5,6 @@ const StudentModel = require("../models/student.model.js")
 
 
 const extractPDFData = async (req, res) => {
-    console.log("HIted1")
     try {
         // const files = req.file;
         const filePath = req.file?.path;
@@ -16,66 +15,42 @@ const extractPDFData = async (req, res) => {
             throw new ApiError(400, "PDF file not found")
         }
 
-        const extractedTableSubjectMarks = await extractSubjectMarks(filePath);
         let extractedStudentDetails = await extractStudentDetails(filePath);
-        console.log(typeof extractedTableSubjectMarks)
-        console.log(typeof extractedStudentDetails)
-        const getStartingDetailsBeforeIndex = extractedStudentDetails?.findIndex((element) => element.split(" ").join("") === "INSTITUTENAME:");
-
-
-        // --------------------------------------------------------------------------- 
-
+        const extractedTableSubjectMarks = await extractSubjectMarks(filePath);
+        const getStartingDetailsIndex = extractedStudentDetails?.findIndex((element) => element.split(" ").join("") === "INSTITUTENAME:");
         const university = "CHHATTISGARH SWAMI VIVEKANAND TECHNICAL UNIVERSITY, BHILAI";
-        console.log(extractedStudentDetails[getStartingDetailsBeforeIndex + 1]); // name
-        console.log(extractedStudentDetails[getStartingDetailsBeforeIndex + 10]);  // father
-        console.log(extractedStudentDetails[getStartingDetailsBeforeIndex + 3].slice(0, 1)); // semester
-        // let CourseBranch = extractedStudentDetails[getStartingDetailsBeforeIndex + 2].split(" ");
-        // console.log(CourseBranch[0] + CourseBranch[1]); // course btech
-        // console.log(CourseBranch.slice(2, CourseBranch.length).join(" ")); // branch
-        console.log(extractedStudentDetails[getStartingDetailsBeforeIndex + 4]); // rollno
-        console.log(extractedStudentDetails[getStartingDetailsBeforeIndex + 5]); // college
-        console.log(extractedStudentDetails[getStartingDetailsBeforeIndex + 11]); // session
-        console.log(extractedStudentDetails[getStartingDetailsBeforeIndex + 12]); // type
-        console.log(extractedStudentDetails[getStartingDetailsBeforeIndex + 13]); // enrollmentment
-        console.log(extractedStudentDetails[getStartingDetailsBeforeIndex + 15].split(" ")[2]); // result
-        console.log(extractedStudentDetails[getStartingDetailsBeforeIndex + 14].slice(extractedStudentDetails[getStartingDetailsBeforeIndex + 14].length - 3, extractedStudentDetails[getStartingDetailsBeforeIndex + 14].length)); // total-marks
-        // ------------------------------------------------------------------------------------ 
-
-        const studentName = extractedStudentDetails[getStartingDetailsBeforeIndex + 1]; // name
-        const fathersName = extractedStudentDetails[getStartingDetailsBeforeIndex + 10];  // father
-        const semester = extractedStudentDetails[getStartingDetailsBeforeIndex + 3].slice(0, 1); // semester
-        const CourseBranch = extractedStudentDetails[getStartingDetailsBeforeIndex + 2].split(" ");
-        const course = CourseBranch[0] + CourseBranch[1]; // course btech
-        const branch = CourseBranch.slice(2, CourseBranch.length).join(" "); // branch
-        const rollNumber = extractedStudentDetails[getStartingDetailsBeforeIndex + 4]; // rollno
-        const college = extractedStudentDetails[getStartingDetailsBeforeIndex + 5]; // college
-        const examSession = extractedStudentDetails[getStartingDetailsBeforeIndex + 11]; // session
-        const type = extractedStudentDetails[getStartingDetailsBeforeIndex + 12]; // type
-        const enrollment = extractedStudentDetails[getStartingDetailsBeforeIndex + 13]; // enrollmentment
-        const result = extractedStudentDetails[getStartingDetailsBeforeIndex + 15].split(" ")[2]; // result
-        const totalMarks = extractedStudentDetails[getStartingDetailsBeforeIndex + 14].slice(extractedStudentDetails[getStartingDetailsBeforeIndex + 14].length - 3, extractedStudentDetails[getStartingDetailsBeforeIndex + 14].length); // total-marks
+        const studentName = extractedStudentDetails[getStartingDetailsIndex + 1];
+        const fathersName = extractedStudentDetails[getStartingDetailsIndex + 10];
+        const semester = extractedStudentDetails[getStartingDetailsIndex + 3].slice(0, 1);
+        const CourseBranch = extractedStudentDetails[getStartingDetailsIndex + 2].split(" "); // B Tech Branch Name
+        const course = CourseBranch[0] + CourseBranch[1];
+        const branch = CourseBranch.slice(2, CourseBranch.length).join(" ");
+        const rollNumber = extractedStudentDetails[getStartingDetailsIndex + 4];
+        const college = extractedStudentDetails[getStartingDetailsIndex + 5];
+        const examSession = extractedStudentDetails[getStartingDetailsIndex + 11];
+        const type = extractedStudentDetails[getStartingDetailsIndex + 12];
+        const enrollment = extractedStudentDetails[getStartingDetailsIndex + 13];
+        const result = extractedStudentDetails[getStartingDetailsIndex + 15].split(" ")[2];
+        const totalMarks = extractedStudentDetails[getStartingDetailsIndex + 14].slice(extractedStudentDetails[getStartingDetailsIndex + 14].length - 3, extractedStudentDetails[getStartingDetailsIndex + 14].length); // total-marks
         const percent = totalMarks / 10;
-        console.log(percent)
 
-        extractedStudentDetails = {
-            studentName, fathersName, semester, course, branch, rollNumber, examSession, type, enrollment, university, result, totalMarks, percent
-        }
 
         const studentExist = await StudentModel.findOne({
             $or: [{ rollNumber }, { enrollment }]
-        })
-
-        const alreadySavedData = studentExist?.marksheet.some((semResult) => semResult.semester === semester);
-        console.log("already exist", alreadySavedData)
-        if (alreadySavedData) {
-            throw new ApiError(400, "Data already exists!");
+        });
+        // is semester result already saved
+        const semesterResultExist = studentExist?.marksheet.some((semResult) => semResult.semester === semester);
+        if (semesterResultExist) {
+            // throw new ApiError(400, "Sem result Data already exists!");
+            return res.status(400).json(
+                new ApiResponse(400, null, "Semester data already exist!")
+            );
         }
 
         let studentId = studentExist?._id;
-        let createStudent;
+        // in case student not exist create account of student
         if (!studentExist) {
-            // create account of student
-            createStudent = await StudentModel.create({
+            const createStudent = await StudentModel.create({
                 studentName, fathersName, rollNumber, enrollment, course, type, branch, examSession, college, university
             })
             if (!createStudent) {
@@ -93,14 +68,16 @@ const extractPDFData = async (req, res) => {
             totalMarks,
             result,
             percent,
+            extractedRawData: extractedStudentDetails.join("\n"),
             subjects: extractedTableSubjectMarks
         }
+        // Sort subjects by subject_name in descending order
+        marksheet.subjects.sort((a, b) => b.subject_name.localeCompare(a.subject_name));
         student.marksheet.push(marksheet)
         const updatedStudent = await student.save();
         if (!updatedStudent) {
             throw new ApiError(500, "Server error to submit marks!");
         }
-
         console.log("Successfully Data Saved!!")
         return res.status(200).json(
             new ApiResponse(200, updatedStudent, "Successfully data saved")
@@ -112,4 +89,12 @@ const extractPDFData = async (req, res) => {
 }
 
 
-module.exports = { extractPDFData }
+const accessAllStudentMarksheetDetails = async (req, res) => {
+    const students = await StudentModel.find();
+    return res.status(200).json(
+        new ApiResponse(200, students, 'Data fetched successfully')
+    )
+}
+
+
+module.exports = { extractPDFData, accessAllStudentMarksheetDetails }

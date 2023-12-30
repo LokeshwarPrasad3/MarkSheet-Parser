@@ -1,25 +1,16 @@
-import { useState } from "react";
-import Navbar from "./Components/Navbar";
-import ShowData from "./Components/ShowData";
-import UploadPDF from "./Components/UploadPDF";
+import { Routes, Route } from "react-router-dom";
+import HomePage from "./Pages/HomePage";
+import PrivatePage from "./Pages/PrivatePage.jsx";
+import Navbar from "./Components/Navbar.jsx";
 
 function App() {
-  // State store API Response of Marksheet Subject Marks
-  const [subjectMarksArray, setSubjectMarksArray] = useState([]);
-  // store details of student
-  const [studentDetails, setStudentDetails] = useState({});
-
   return (
     <>
-      <Navbar />
-      <UploadPDF
-        setSubjectMarksArray={setSubjectMarksArray}
-        setStudentDetails={setStudentDetails}
-      />
-      <ShowData
-        subjectMarksArray={subjectMarksArray}
-        studentDetails={studentDetails}
-      />
+      <Navbar/>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/private" element={<PrivatePage />} />
+      </Routes>
     </>
   );
 }

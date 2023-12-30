@@ -28,6 +28,10 @@ const marksheetSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    extractedRawData: {
+        type: String,
+        required: true,
+    },
     subjects: [subjectSchema],
 
 }, { timestamps: true });

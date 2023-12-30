@@ -26,7 +26,7 @@ const UploadPDF = ({ setStudentDetails, setSubjectMarksArray }) => {
     const formData = new FormData();
     formData.append("file", marksheet);
     setLocalPdf(formData);
-    console.log("Successfully getted")
+    console.log("Successfully get PDF !!");
   };
 
   // When click submit button then done post request which gives subject Marks data
@@ -37,14 +37,13 @@ const UploadPDF = ({ setStudentDetails, setSubjectMarksArray }) => {
       setLoading(false);
       return;
     }
-
-    console.log("HIII");
     try {
       const { data } = await axios.post(`${host}/pdf/extract-pdf`, localPdf);
       console.log(data);
       // if data not found
       if (!data) {
         setLocalPdf("");
+         setStudentDetails({});
         setSubjectMarksArray([]);
         toast.error("Invalid Marksheet !!", { autoClose: 2000 });
         setLoading(false);
@@ -54,9 +53,9 @@ const UploadPDF = ({ setStudentDetails, setSubjectMarksArray }) => {
       // if data status not success
       if (!data.success) {
         setLocalPdf("");
+         setStudentDetails({});
         setSubjectMarksArray([]);
         toast.error(`${data?.message}`, { autoClose: 2000 });
-        // toast.error("Invalid Marksheet PDF !!", { autoClose: 2000 });
         setLoading(false);
         return;
       }
@@ -64,17 +63,55 @@ const UploadPDF = ({ setStudentDetails, setSubjectMarksArray }) => {
       console.log(data?.message);
       const pdfData = data?.data;
 
-      setStudentDetails(pdfData?.extractedStudentDetails);
-      setSubjectMarksArray(pdfData?.extractedTableSubjectMarks);
+      // get data for subjectDetails
+      const {
+        studentName,
+        fathersName,
+        branch,
+        course,
+        college,
+        enrollment,
+        rollNumber,
+        type,
+        university,
+      } = pdfData;
+      const { semester, result, percent, totalMarks, examSession } =
+        pdfData.marksheet[0];
+      const wrapDetails = {
+        studentName,
+        fathersName,
+        branch,
+        course,
+        college,
+        type,
+        university,
+        enrollment,
+        rollNumber,
+        semester,
+        percent,
+        totalMarks,
+        examSession,
+        result,
+      };
+      // get data subjectMarksArray
+      const subjectsMarks = pdfData.marksheet[0].subjects;
+
+      setStudentDetails(wrapDetails);
+      setSubjectMarksArray(subjectsMarks);
+      setLocalPdf("");
+
+      console.log(wrapDetails);
+      console.log(subjectsMarks);
 
       toast.success("Successfully Marksheet Extracted!!", { autoClose: 2000 });
       setLoading(false);
     } catch (error) {
       // value must be empty after error
+      setStudentDetails({});
       setLocalPdf("");
       setSubjectMarksArray([]);
       console.log("Error ", error);
-      toast.error("Invalid Marksheet PDF !!", { autoClose: 2000 });
+      toast.error("Invalid or already Uploaded !!", { autoClose: 4000 });
       setLoading(false);
       return;
     }

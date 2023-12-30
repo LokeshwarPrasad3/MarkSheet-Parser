@@ -57,8 +57,10 @@ const Navbar = () => {
         <div
           id="navbar_menu"
           className={`${
-            showResNavbar ? "left-[0%]" : "left-[100%]"
-          } flex items-center custom-transition`}
+            showResNavbar
+              ? "left-[0%] flex items-center "
+              : "left-[100%] hidden"
+          } custom-transition`}
         >
           <ul id="nav_ul" className="flex font-signika gap-3">
             <li className="nav_list list-none flex justify-center items-center">
